@@ -3,9 +3,11 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Event } from './entities/Event';
-import { User } from './entities/User';
 import { Purchase } from './entities/Purchase';
 import { EventsController } from './events/events.controller';
+import { EventUser } from './entities/EventUser';
+import { PurchaseUser } from './entities/PurchaseUser';
+import { EventsService } from './events/events.service';
 
 @Module({
     imports: [
@@ -16,11 +18,12 @@ import { EventsController } from './events/events.controller';
             username: 'postgres',
             password: 'root',
             database: 'obschak',
-            entities: [Event, User, Purchase],
+            entities: [Event, EventUser, Purchase, PurchaseUser],
             synchronize: true,
+            logging: true
         }),
     ],
     controllers: [AppController, EventsController],
-    providers: [AppService],
+    providers: [AppService, EventsService],
 })
 export class AppModule {}

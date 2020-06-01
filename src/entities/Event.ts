@@ -1,17 +1,8 @@
-import {
-    Column,
-    Entity,
-    JoinColumn,
-    JoinTable,
-    ManyToMany,
-    OneToMany,
-    OneToOne,
-    PrimaryGeneratedColumn,
-} from 'typeorm';
-import { User } from './User';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { EventUser } from './EventUser';
 import { Purchase } from './Purchase';
 
-@Entity()
+@Entity('events')
 export class Event {
     @PrimaryGeneratedColumn()
     id: number;
@@ -19,7 +10,7 @@ export class Event {
     @Column('varchar')
     title: string;
 
-    @Column('varchar')
+    @Column('varchar', { nullable: true })
     photo: string;
 
     @Column('timestamp')
@@ -28,14 +19,12 @@ export class Event {
     @Column('timestamp')
     endDate: string;
 
-    @OneToOne(() => User, { cascade: ['update'] })
-    @JoinColumn()
-    creator: User;
+    @Column('varchar')
+    creatorId: number;
 
-    @ManyToMany(() => User, { cascade: ['update'] })
-    @JoinTable()
-    users: User[];
+    @OneToMany(() => EventUser, (eventUser) => eventUser.event, { cascade: true })
+    users: EventUser[];
 
-    @OneToMany(() => Purchase, purchase => purchase.event, { cascade: true })
+    @OneToMany(() => Purchase, (purchase) => purchase.event, { cascade: true })
     purchases: Purchase[];
 }
