@@ -8,6 +8,7 @@ import { EventsController } from './events/events.controller';
 import { EventUser } from './entities/EventUser';
 import { PurchaseUser } from './entities/PurchaseUser';
 import { EventsService } from './events/events.service';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
     imports: [
@@ -22,6 +23,9 @@ import { EventsService } from './events/events.service';
             synchronize: true,
             logging: true
         }),
+        ConfigModule.forRoot({
+            isGlobal: true,
+        })
     ],
     controllers: [AppController, EventsController],
     providers: [AppService, EventsService],

@@ -8,16 +8,17 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import ImageKit from 'imagekit';
+import { ConfigService } from '@nestjs/config';
 
 @Controller()
 export class AppController {
     imageKit = new ImageKit({
-        publicKey: 'public_b0ympUG178eapBSFYBhgwywP2ao=',
-        privateKey: 'private_xU9uIcjpbP6kFUjQLVai13KGfg8=',
-        urlEndpoint: 'https://ik.imagekit.io/obschak',
+        publicKey: this.configService.get('IMAGEKIT_PUBLIC_KEY'),
+        privateKey: this.configService.get('IMAGEKIT_PRIVATE_KEY'),
+        urlEndpoint: this.configService.get('IMAGEKIT_URL'),
     });
 
-    constructor() {}
+    constructor(private configService: ConfigService) {}
 
     @Post('upload')
     @HttpCode(200)
@@ -29,7 +30,7 @@ export class AppController {
                 fileName: file.originalname,
             });
 
-            return { image: `https://ik.imagekit.io/obschak/tr:w-72,h-72${filePath}` };
+            return { image: `${this.configService.get('IMAGEKIT_URL')}/tr:w-72,h-72${filePath}` };
         } catch (e) {
             return new BadRequestException(e);
         }

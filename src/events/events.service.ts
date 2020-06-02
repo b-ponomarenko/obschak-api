@@ -29,12 +29,16 @@ export class EventsService {
 
     }
 
-    public getOneEvent() {
+    public getOneEvent(userId) {
 
     }
 
-    public getEvents() {
-        return []
+    public async getEvents(userId) {
+        const events = await this.entityManager.find(Event, {
+            relations: ['users']
+        }).then(events => events.filter(({ creatorId, users }) => creatorId === userId || users.includes(userId)))
+
+        return { events: events.map(event => ({ ...event, users: event.users.map(({ userId }) => userId) })) }
     }
 
     private isMemberOfEvent(userId) {

@@ -1,4 +1,4 @@
-import { IsArray, IsDate, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsDateString, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateEvent {
     @IsString()
@@ -8,10 +8,10 @@ export class CreateEvent {
     @IsString()
     photo: string;
 
-    @IsDate()
+    @IsDateString()
     startDate: Date;
 
-    @IsDate()
+    @IsDateString()
     endDate: Date;
 
     @IsNumber()
