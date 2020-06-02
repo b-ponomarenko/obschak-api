@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Post, UseGuards, Headers } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post, UseGuards, Headers, Param } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { CreateEvent } from './CreateEvent';
 import { RolesGuard } from '../roles.guard';
@@ -16,6 +16,11 @@ export class EventsController {
 
     @Get()
     async getAll(@Headers('vk_user_id') userId) {
-        return this.eventsService.getEvents(userId)
+        return this.eventsService.getEvents(userId);
+    }
+
+    @Get(':eventId')
+    async getOne(@Headers('vk_user_id') userId, @Param('eventId') eventId) {
+        return this.eventsService.getOneEvent(eventId, userId);
     }
 }
