@@ -10,5 +10,5 @@ export class EventUser {
     event: Event;
 
     @Column('varchar')
-    userId: number;
+    userId: string;
 }

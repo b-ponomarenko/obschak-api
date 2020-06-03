@@ -1,4 +1,4 @@
-import { IsArray, IsDateString, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsDateString, IsOptional, IsString } from 'class-validator';
 
 export class CreateEvent {
     @IsString()
@@ -14,9 +14,6 @@ export class CreateEvent {
     @IsDateString()
     endDate: Date;
 
-    @IsNumber()
-    creatorId: number;
-
     @IsArray()
-    users: number[];
+    users: string[];
 }
