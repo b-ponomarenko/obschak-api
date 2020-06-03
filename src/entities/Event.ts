@@ -20,7 +20,7 @@ export class Event {
     endDate: string;
 
     @Column('varchar')
-    creatorId: number;
+    creatorId: string;
 
     @OneToMany(() => EventUser, (eventUser) => eventUser.event, { cascade: true })
     users: EventUser[];

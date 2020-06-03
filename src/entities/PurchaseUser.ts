@@ -1,7 +1,7 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Purchase } from './Purchase';
 
-@Entity('purchase_users')
+@Entity('purchases_users')
 export class PurchaseUser {
     @PrimaryGeneratedColumn()
     id: number;
@@ -10,5 +10,5 @@ export class PurchaseUser {
     purchase: Purchase;
 
     @Column('varchar')
-    userId: number;
+    userId: string;
 }

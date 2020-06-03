@@ -2,7 +2,7 @@ import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'ty
 import { Event } from './Event';
 import { PurchaseUser } from './PurchaseUser';
 
-@Entity()
+@Entity('purchases')
 export class Purchase {
     @PrimaryGeneratedColumn()
     id: number;
@@ -17,7 +17,7 @@ export class Purchase {
     currency: string;
 
     @Column('int4')
-    creator: number;
+    creatorId: string;
 
     @Column('timestamp')
     date: string;
@@ -25,6 +25,6 @@ export class Purchase {
     @ManyToOne(() => Event, (event) => event.purchases, { cascade: ['update'] })
     event: Event;
 
-    @OneToMany(() => PurchaseUser, (purchaseUser) => purchaseUser.userId, { cascade: true })
+    @OneToMany(() => PurchaseUser, (purchaseUser) => purchaseUser.purchase, { cascade: true })
     participants: PurchaseUser[];
 }

@@ -2,6 +2,7 @@ import { Body, Controller, Get, HttpCode, Post, UseGuards, Headers, Param } from
 import { EventsService } from './events.service';
 import { CreateEvent } from './CreateEvent';
 import { RolesGuard } from '../roles.guard';
+import { CreatePurchase } from './CreatePurchase';
 
 @Controller('events')
 @UseGuards(RolesGuard)
@@ -10,8 +11,8 @@ export class EventsController {
 
     @Post()
     @HttpCode(200)
-    async createEvent(@Body() body: CreateEvent) {
-        return this.eventsService.createEvent(body);
+    async createEvent(@Body() body: CreateEvent, @Headers('vk_user_id') userId) {
+        return this.eventsService.createEvent(userId, body);
     }
 
     @Get()
@@ -22,5 +23,15 @@ export class EventsController {
     @Get(':eventId')
     async getOne(@Headers('vk_user_id') userId, @Param('eventId') eventId) {
         return this.eventsService.getOneEvent(eventId, userId);
+    }
+
+    @Post(':eventId/purchases')
+    @HttpCode(200)
+    async createPurchase(
+        @Headers('vk_user_id') userId,
+        @Body() body: CreatePurchase,
+        @Param('eventId') eventId,
+    ) {
+        return this.eventsService.createPurchase(body, eventId, userId);
     }
 }
