@@ -1,4 +1,5 @@
-import { IsArray, IsDateString, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsOptional, IsString } from 'class-validator';
+import { IsUniqArray } from './decorators/IsUniqArray';
 
 export class CreateEvent {
     @IsString()
@@ -14,6 +15,6 @@ export class CreateEvent {
     @IsDateString()
     endDate: Date;
 
-    @IsArray()
+    @IsUniqArray()
     users: string[];
 }

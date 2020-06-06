@@ -6,9 +6,9 @@ export class EventUser {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => Event, (event) => event.users)
+    @ManyToOne(() => Event, (event) => event.users, { onDelete: 'CASCADE' })
     event: Event;
 
-    @Column('varchar')
-    userId: string;
+    @Column('int4')
+    userId: number;
 }

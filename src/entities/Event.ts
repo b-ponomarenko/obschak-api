@@ -19,12 +19,12 @@ export class Event {
     @Column('timestamp')
     endDate: string;
 
-    @Column('varchar')
-    creatorId: string;
+    @Column('int4')
+    creatorId: number;
 
-    @OneToMany(() => EventUser, (eventUser) => eventUser.event, { cascade: true })
+    @OneToMany(() => EventUser, (eventUser) => eventUser.event)
     users: EventUser[];
 
-    @OneToMany(() => Purchase, (purchase) => purchase.event, { cascade: true })
+    @OneToMany(() => Purchase, (purchase) => purchase.event)
     purchases: Purchase[];
 }

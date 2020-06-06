@@ -1,4 +1,5 @@
-import { IsArray, IsNumber, IsString } from 'class-validator';
+import { IsNumber, IsString } from 'class-validator';
+import { IsUniqArray } from './decorators/IsUniqArray';
 
 export class CreatePurchase {
     @IsString()
@@ -10,6 +11,6 @@ export class CreatePurchase {
     @IsString()
     currency: string;
 
-    @IsArray()
+    @IsUniqArray()
     participants: number[];
 }
