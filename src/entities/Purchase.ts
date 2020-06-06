@@ -17,14 +17,14 @@ export class Purchase {
     currency: string;
 
     @Column('int4')
-    creatorId: string;
+    creatorId: number;
 
     @Column('timestamp')
     date: string;
 
-    @ManyToOne(() => Event, (event) => event.purchases, { cascade: ['update'] })
+    @ManyToOne(() => Event, (event) => event.purchases, { onDelete: 'CASCADE' })
     event: Event;
 
-    @OneToMany(() => PurchaseUser, (purchaseUser) => purchaseUser.purchase, { cascade: true })
+    @OneToMany(() => PurchaseUser, (purchaseUser) => purchaseUser.purchase)
     participants: PurchaseUser[];
 }

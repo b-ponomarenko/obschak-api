@@ -1,37 +1,53 @@
-import { Body, Controller, Get, HttpCode, Post, UseGuards, Headers, Param } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post, UseGuards, Param, createParamDecorator, Put } from '@nestjs/common';
 import { EventsService } from './events.service';
-import { CreateEvent } from './CreateEvent';
+import { CreateEvent } from '../validations/CreateEvent';
 import { RolesGuard } from '../roles.guard';
-import { CreatePurchase } from './CreatePurchase';
+import { CreatePurchase } from '../validations/CreatePurchase';
+import { UpdateEvent } from '../validations/UpdateEvent';
+import { MemberOfEventGuard } from '../member-of-event.guard';
+import { PurchasesService } from '../purchases/purchases.service';
+
+const VkUserId = createParamDecorator((data, ctx) => {
+    const request = ctx.switchToHttp().getRequest();
+    return Number(request.headers['vk_user_id']);
+})
 
 @Controller('events')
 @UseGuards(RolesGuard)
 export class EventsController {
-    constructor(private eventsService: EventsService) {}
+    constructor(private eventsService: EventsService, private purchasesService: PurchasesService) {}
 
     @Post()
     @HttpCode(200)
-    async createEvent(@Body() body: CreateEvent, @Headers('vk_user_id') userId) {
+    async createEvent(@Body() body: CreateEvent, @VkUserId() userId) {
         return this.eventsService.createEvent(userId, body);
     }
 
+    @UseGuards(MemberOfEventGuard)
+    @Put(':eventId')
+    async updateEvent(@Body() body: UpdateEvent, @VkUserId() userId, @Param('eventId') eventId) {
+        return this.eventsService.updateEvent(body, userId, eventId)
+    }
+
     @Get()
-    async getAll(@Headers('vk_user_id') userId) {
+    async getAll(@VkUserId() userId) {
         return this.eventsService.getEvents(userId);
     }
 
+    @UseGuards(MemberOfEventGuard)
     @Get(':eventId')
-    async getOne(@Headers('vk_user_id') userId, @Param('eventId') eventId) {
-        return this.eventsService.getOneEvent(eventId, userId);
+    async getOne(@Param('eventId') eventId) {
+        return this.eventsService.getOneEvent(eventId);
     }
 
+    @UseGuards(MemberOfEventGuard)
     @Post(':eventId/purchases')
     @HttpCode(200)
     async createPurchase(
-        @Headers('vk_user_id') userId,
+        @VkUserId() userId,
         @Body() body: CreatePurchase,
         @Param('eventId') eventId,
     ) {
-        return this.eventsService.createPurchase(body, eventId, userId);
+        return this.purchasesService.createPurchase(body, eventId, userId);
     }
 }

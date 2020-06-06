@@ -1,63 +1,143 @@
-import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
-import { getManager } from 'typeorm';
+import {
+    ForbiddenException,
+    Inject,
+    Injectable,
+    InternalServerErrorException,
+} from '@nestjs/common';
+import { Connection, getManager } from 'typeorm';
 import { EventUser } from '../entities/EventUser';
 import { Event } from '../entities/Event';
 import { Purchase } from '../entities/Purchase';
 import { PurchaseUser } from '../entities/PurchaseUser';
 import sortBy from '@tinkoff/utils/array/sortBy';
+import isEmpty from '@tinkoff/utils/is/empty';
+import { PurchasesService } from '../purchases/purchases.service';
+
+/* Создать тестовую базу данных и для нее написать тесты */
 
 @Injectable()
 export class EventsService {
     private entityManager = getManager();
 
-    public async createEvent(userId, body) {
-        const users = [userId, ...body.users].map((userId) =>
-            this.entityManager.create(EventUser, { userId }),
-        );
+    constructor(
+        private readonly connection: Connection,
+        private readonly purchasesService: PurchasesService,
+    ) {}
 
-        await Promise.all(users.map((user) => this.entityManager.save(user)));
+    public async createEvent(userId: number, body) {
+        const queryRunner = this.connection.createQueryRunner();
 
-        const event = this.entityManager.create(Event, {
-            ...body,
-            creatorId: userId,
-            users,
-        });
-        const newEvent = await this.entityManager.save(event);
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
 
-        return { event: { ...newEvent, users: newEvent.users.map(({ userId }) => userId) } };
+        const { manager } = queryRunner;
+
+        try {
+            const users = [userId, ...body.users].map((userId) =>
+                manager.create(EventUser, { userId }),
+            );
+
+            await Promise.all(users.map((user) => this.entityManager.save(user)));
+
+            const event = await manager.save(Event, {
+                ...body,
+                creatorId: userId,
+                users,
+            });
+
+            await queryRunner.commitTransaction();
+            return { event: { ...event, users: event.users.map(({ userId }) => userId) } };
+        } catch (e) {
+            await queryRunner.rollbackTransaction();
+            throw new InternalServerErrorException(e);
+        } finally {
+            await queryRunner.release();
+        }
     }
 
-    public updateEvent() {}
+    public async updateEvent(body, userId, eventId) {
+        const queryRunner = this.connection.createQueryRunner();
+
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        const { manager } = queryRunner;
+
+        try {
+            const event = await manager.findOne(Event, eventId, {
+                relations: ['users', 'purchases', 'purchases.participants'],
+            });
+            const { photo = null, users, title } = body;
+
+            const newUsers = body.users.filter(
+                (id) => !event.users.map(({ userId }) => userId).includes(id),
+            );
+
+            event.photo = photo;
+            event.title = title;
+
+            const eventUsers = await Promise.all<EventUser>(
+                newUsers.map((userId) => manager.save(EventUser, { userId })),
+            );
+
+            event.users = [
+                ...event.users.filter(({ userId }) => users.includes(userId)),
+                ...eventUsers,
+            ];
+            event.purchases = await Promise.all<Purchase>(
+                event.purchases
+                    .filter(({ creatorId }) => users.includes(creatorId))
+                    .map(async (purchase) => {
+                        const purchaseUsers = await Promise.all<PurchaseUser>(
+                            newUsers.map((userId) => manager.save(PurchaseUser, { userId, purchase })),
+                        );
+
+                        return {
+                            ...purchase,
+                            participants: [
+                                ...purchase.participants.filter(({ userId }) => users.includes(userId)),
+                                ...purchaseUsers,
+                            ],
+                        };
+                    })
+            );
+
+            await Promise.all(event.purchases.map((purchase) => manager.save(Purchase, purchase)));
+            await manager.save(event);
+            await manager.delete(EventUser, { event: { id: null } });
+            await manager.delete(PurchaseUser, { purchase: { id: null } });
+            await queryRunner.commitTransaction();
+
+            return event;
+        } catch (e) {
+            await queryRunner.rollbackTransaction();
+            throw new InternalServerErrorException(e);
+        } finally {
+            await queryRunner.release();
+        }
+    }
 
     public deleteEvent() {}
 
-    public async getOneEvent(eventId, userId) {
-        const rawEvent = await this.entityManager.findOne(
+    public async getOneEvent(eventId: number) {
+        const event = await this.entityManager.findOne(
             Event,
             {
                 id: eventId,
             },
-            { relations: ['users', 'purchases'] },
+            { relations: ['users', 'purchases', 'purchases.participants'] },
         );
 
-        if (!rawEvent) {
-            return new BadRequestException(`События с id=${eventId} нет`);
-        }
-
-        if (!this.isMemberOfEvent(rawEvent, userId)) {
-            return new ForbiddenException();
-        }
-
-        const event = {
-            ...rawEvent,
-            users: rawEvent.users.map(({ userId }) => userId),
-            purchases: sortBy(({ date }) => -date, rawEvent.purchases),
+        return {
+            event: {
+                ...event,
+                users: event.users.map(({ userId }) => userId),
+                purchases: sortBy(({ date }) => -date, event.purchases),
+            },
         };
-
-        return { event };
     }
 
-    public async getEvents(userId) {
+    public async getEvents(userId: number) {
         const events = await this.entityManager
             .find(Event, {
                 relations: ['users'],
@@ -72,69 +152,7 @@ export class EventsService {
         };
     }
 
-    public async createPurchase(data, eventId, userId) {
-        const { name, value, currency } = data;
-        const event = await this.entityManager.findOne(
-            Event,
-            { id: eventId },
-            { relations: ['users'] },
-        );
-
-        if (!event) {
-            return new BadRequestException(`События с id=${eventId} нет`);
-        }
-
-        if (!this.isMemberOfEvent(event, userId)) {
-            return new ForbiddenException();
-        }
-
-        const eventUsers = event.users.map(({ userId }) => userId);
-
-        if (
-            !data.participants.every((userId) =>
-                eventUsers.includes(userId),
-            )
-        ) {
-            return new ForbiddenException();
-        }
-
-        const participants = data.participants.map((userId) =>
-            this.entityManager.create(PurchaseUser, { userId }),
-        );
-
-        await Promise.all(participants.map((participant) => this.entityManager.save(participant)));
-
-        const purchase = this.entityManager.create(Purchase, {
-            name,
-            value,
-            currency,
-            creatorId: userId,
-            participants,
-            event,
-            date: new Date().toISOString(),
-        });
-
-        return this.entityManager.save(purchase).then(({ event, ...purchase }) => ({
-            purchase: {
-                ...purchase,
-                participants: purchase.participants.map(({ userId }) => userId),
-            },
-        }));
-    }
-
-    public async getOnePurchase(purchaseId) {
-        return this.entityManager.findOne(
-            Purchase,
-            { id: purchaseId },
-            {
-                relations: ['participants'],
-            },
-        );
-    }
-
     private isMemberOfEvent(event: Event, userId) {
-        return (
-            event.creatorId === userId || event.users.map(({ userId }) => userId).includes(userId)
-        );
+        return event.users.map(({ userId }) => userId).includes(userId);
     }
 }

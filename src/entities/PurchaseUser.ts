@@ -6,9 +6,9 @@ export class PurchaseUser {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => Purchase, purchase => purchase.participants)
+    @ManyToOne(() => Purchase, purchase => purchase.participants, { onDelete: 'CASCADE' })
     purchase: Purchase;
 
-    @Column('varchar')
-    userId: string;
+    @Column('int4')
+    userId: number;
 }

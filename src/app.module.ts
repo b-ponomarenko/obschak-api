@@ -9,6 +9,8 @@ import { EventUser } from './entities/EventUser';
 import { PurchaseUser } from './entities/PurchaseUser';
 import { EventsService } from './events/events.service';
 import { ConfigModule } from '@nestjs/config';
+import { PurchasesService } from './purchases/purchases.service';
+import { PurchasesController } from './purchases/purchases.controller';
 
 @Module({
     imports: [
@@ -27,7 +29,7 @@ import { ConfigModule } from '@nestjs/config';
             isGlobal: true,
         })
     ],
-    controllers: [AppController, EventsController],
-    providers: [AppService, EventsService],
+    controllers: [AppController, EventsController, PurchasesController],
+    providers: [AppService, EventsService, PurchasesService],
 })
 export class AppModule {}
