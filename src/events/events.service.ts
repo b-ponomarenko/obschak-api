@@ -1,28 +1,16 @@
-import {
-    ForbiddenException,
-    Inject,
-    Injectable,
-    InternalServerErrorException,
-} from '@nestjs/common';
-import { Connection, getManager } from 'typeorm';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Connection } from 'typeorm';
 import { EventUser } from '../entities/EventUser';
 import { Event } from '../entities/Event';
 import { Purchase } from '../entities/Purchase';
 import { PurchaseUser } from '../entities/PurchaseUser';
 import sortBy from '@tinkoff/utils/array/sortBy';
-import isEmpty from '@tinkoff/utils/is/empty';
-import { PurchasesService } from '../purchases/purchases.service';
 
 /* Создать тестовую базу данных и для нее написать тесты */
 
 @Injectable()
 export class EventsService {
-    private entityManager = getManager();
-
-    constructor(
-        private readonly connection: Connection,
-        private readonly purchasesService: PurchasesService,
-    ) {}
+    constructor(private readonly connection: Connection) {}
 
     public async createEvent(userId: number, body) {
         const queryRunner = this.connection.createQueryRunner();
@@ -37,7 +25,7 @@ export class EventsService {
                 manager.create(EventUser, { userId }),
             );
 
-            await Promise.all(users.map((user) => this.entityManager.save(user)));
+            await Promise.all(users.map((user) => manager.save(user)));
 
             const event = await manager.save(Event, {
                 ...body,
@@ -89,17 +77,21 @@ export class EventsService {
                     .filter(({ creatorId }) => users.includes(creatorId))
                     .map(async (purchase) => {
                         const purchaseUsers = await Promise.all<PurchaseUser>(
-                            newUsers.map((userId) => manager.save(PurchaseUser, { userId, purchase })),
+                            newUsers.map((userId) =>
+                                manager.save(PurchaseUser, { userId, purchase }),
+                            ),
                         );
 
                         return {
                             ...purchase,
                             participants: [
-                                ...purchase.participants.filter(({ userId }) => users.includes(userId)),
+                                ...purchase.participants.filter(({ userId }) =>
+                                    users.includes(userId),
+                                ),
                                 ...purchaseUsers,
                             ],
                         };
-                    })
+                    }),
             );
 
             await Promise.all(event.purchases.map((purchase) => manager.save(Purchase, purchase)));
@@ -117,10 +109,31 @@ export class EventsService {
         }
     }
 
-    public deleteEvent() {}
+    public async deleteEvent(eventId) {
+        const queryRunner = this.connection.createQueryRunner();
+
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        const { manager } = queryRunner;
+
+        try {
+            await manager.delete(Purchase, { event: { id: eventId } });
+            await manager.delete(Event, eventId);
+
+            await queryRunner.commitTransaction();
+
+            return;
+        } catch (e) {
+            await queryRunner.rollbackTransaction();
+            throw new InternalServerErrorException(e);
+        } finally {
+            await queryRunner.release();
+        }
+    }
 
     public async getOneEvent(eventId: number) {
-        const event = await this.entityManager.findOne(
+        const event = await this.connection.manager.findOne(
             Event,
             {
                 id: eventId,
@@ -138,7 +151,7 @@ export class EventsService {
     }
 
     public async getEvents(userId: number) {
-        const events = await this.entityManager
+        const events = await this.connection.manager
             .find(Event, {
                 relations: ['users'],
             })

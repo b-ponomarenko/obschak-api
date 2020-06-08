@@ -1,4 +1,15 @@
-import { Body, Controller, Get, HttpCode, Post, UseGuards, Param, createParamDecorator, Put } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Get,
+    HttpCode,
+    Post,
+    UseGuards,
+    Param,
+    createParamDecorator,
+    Put,
+    Delete,
+} from '@nestjs/common';
 import { EventsService } from './events.service';
 import { CreateEvent } from '../validations/CreateEvent';
 import { RolesGuard } from '../roles.guard';
@@ -6,6 +17,7 @@ import { CreatePurchase } from '../validations/CreatePurchase';
 import { UpdateEvent } from '../validations/UpdateEvent';
 import { MemberOfEventGuard } from '../member-of-event.guard';
 import { PurchasesService } from '../purchases/purchases.service';
+import { CreatorOfEventGuard } from '../creator-of-event.guard';
 
 const VkUserId = createParamDecorator((data, ctx) => {
     const request = ctx.switchToHttp().getRequest();
@@ -49,5 +61,11 @@ export class EventsController {
         @Param('eventId') eventId,
     ) {
         return this.purchasesService.createPurchase(body, eventId, userId);
+    }
+
+    @UseGuards(CreatorOfEventGuard)
+    @Delete(':eventId')
+    async deleteEvent(@Param('eventId') eventId) {
+        return this.eventsService.deleteEvent(eventId);
     }
 }
