@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, ForbiddenException, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, ForbiddenException } from '@nestjs/common';
 import { PurchaseUser } from '../entities/PurchaseUser';
 import { Purchase } from '../entities/Purchase';
 import { Connection } from 'typeorm';
@@ -8,7 +8,7 @@ import omit from '@tinkoff/utils/object/omit';
 @Injectable()
 export class PurchasesService {
     constructor(
-        @Inject(forwardRef(() => EventsService)) private readonly eventsService: EventsService,
+        private readonly eventsService: EventsService,
         private readonly connection: Connection,
     ) {}
 
@@ -60,7 +60,5 @@ export class PurchasesService {
         }
     }
 
-    public async updatePurchase() {
-
-    }
+    public async updatePurchase() {}
 }
