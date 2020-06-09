@@ -61,4 +61,10 @@ export class PurchasesService {
     }
 
     public async updatePurchase() {}
+
+    public async getOne(purchaseId) {
+        const purchase = await this.connection.manager.findOne(Purchase, purchaseId, { relations: ['participants'] });
+
+        return { purchase: { ...purchase, participants: purchase.participants.map(({ userId }) => userId) } }
+    }
 }
