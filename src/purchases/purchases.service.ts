@@ -67,4 +67,25 @@ export class PurchasesService {
 
         return { purchase: { ...purchase, participants: purchase.participants.map(({ userId }) => userId) } }
     }
+
+    public async deletePurchase(purchaseId) {
+        const queryRunner = this.connection.createQueryRunner();
+
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        const { manager } = queryRunner;
+
+        try {
+            await manager.delete(Purchase, purchaseId);
+            await queryRunner.commitTransaction();
+
+            return;
+        } catch (e) {
+            await queryRunner.rollbackTransaction();
+            throw new InternalServerErrorException(e);
+        } finally {
+            await queryRunner.release();
+        }
+    }
 }

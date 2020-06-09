@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Delete, Get, Param, UseGuards } from '@nestjs/common';
 import { PurchasesService } from './purchases.service';
 import { MemberOfPurchaseGuard } from '../member-of-purchase.guard';
 
@@ -10,5 +10,11 @@ export class PurchasesController {
     @Get(':purchaseId')
     async getPurchase(@Param('purchaseId') purchaseId) {
         return this.purchasesService.getOne(purchaseId);
+    }
+
+    @UseGuards(MemberOfPurchaseGuard)
+    @Delete(':purchaseId')
+    async deletePurchase(@Param('purchaseId') purchaseId) {
+        return this.purchasesService.deletePurchase(purchaseId);
     }
 }
