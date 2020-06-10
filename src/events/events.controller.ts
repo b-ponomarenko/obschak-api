@@ -56,11 +56,10 @@ export class EventsController {
     @Post(':eventId/purchases')
     @HttpCode(200)
     async createPurchase(
-        @VkUserId() userId,
         @Body() body: CreatePurchase,
         @Param('eventId') eventId,
     ) {
-        return this.purchasesService.createPurchase(body, eventId, userId);
+        return this.purchasesService.createPurchase(body, eventId);
     }
 
     @UseGuards(CreatorOfEventGuard)

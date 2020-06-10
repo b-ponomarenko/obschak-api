@@ -100,7 +100,7 @@ export class EventsService {
             await manager.delete(PurchaseUser, { purchase: { id: null } });
             await queryRunner.commitTransaction();
 
-            return event;
+            return { event };
         } catch (e) {
             await queryRunner.rollbackTransaction();
             throw new InternalServerErrorException(e);
