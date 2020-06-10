@@ -12,7 +12,7 @@ export class PurchasesService {
         private readonly connection: Connection,
     ) {}
 
-    public async createPurchase(body, eventId: number, userId: number) {
+    public async createPurchase(body, eventId: number) {
         const queryRunner = this.connection.createQueryRunner();
 
         await queryRunner.connect();
@@ -21,11 +21,14 @@ export class PurchasesService {
         const { manager } = queryRunner;
 
         try {
-            const { name, value, currency } = body;
+            const { name, value, currency, creatorId } = body;
             const { event } = await this.eventsService.getOneEvent(eventId);
 
-            if (!body.participants.every((userId) => event.users.includes(userId))) {
-                return new ForbiddenException();
+            if (
+                !body.participants.every((userId) => event.users.includes(userId)) ||
+                !event.users.includes(creatorId)
+            ) {
+                throw new ForbiddenException();
             }
 
             const participants = body.participants.map((userId) =>
@@ -38,7 +41,7 @@ export class PurchasesService {
                 name,
                 value,
                 currency,
-                creatorId: userId,
+                creatorId,
                 participants,
                 event: { id: event.id },
                 date: new Date().toISOString(),
@@ -60,12 +63,64 @@ export class PurchasesService {
         }
     }
 
-    public async updatePurchase() {}
+    public async updatePurchase(purchaseId, body) {
+        const queryRunner = this.connection.createQueryRunner();
+
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        const { manager } = queryRunner;
+        const purchase = await manager.findOne(Purchase, purchaseId, {
+            relations: ['participants', 'event', 'event.users'],
+        });
+        const eventUsers = purchase.event.users.map(({ userId }) => userId);
+        const { name, value, currency, participants, creatorId } = body;
+
+        if (
+            !eventUsers.includes(creatorId) ||
+            !participants.every((userId) => eventUsers.includes(userId))
+        ) {
+            throw new ForbiddenException();
+        }
+
+        try {
+            purchase.name = name;
+            purchase.value = value;
+            purchase.currency = currency;
+            purchase.creatorId = creatorId;
+            purchase.participants = await Promise.all<PurchaseUser>(
+                participants.map((userId) => manager.save(PurchaseUser, { purchase, userId })),
+            );
+
+            await manager.save(purchase);
+            await manager.delete(PurchaseUser, { purchase: { id: null } });
+            await queryRunner.commitTransaction();
+
+            return {
+                purchase: {
+                    ...omit(['event'], purchase),
+                    participants,
+                },
+            };
+        } catch (e) {
+            await queryRunner.rollbackTransaction();
+            throw new InternalServerErrorException(e);
+        } finally {
+            await queryRunner.release();
+        }
+    }
 
     public async getOne(purchaseId) {
-        const purchase = await this.connection.manager.findOne(Purchase, purchaseId, { relations: ['participants'] });
+        const purchase = await this.connection.manager.findOne(Purchase, purchaseId, {
+            relations: ['participants'],
+        });
 
-        return { purchase: { ...purchase, participants: purchase.participants.map(({ userId }) => userId) } }
+        return {
+            purchase: {
+                ...purchase,
+                participants: purchase.participants.map(({ userId }) => userId),
+            },
+        };
     }
 
     public async deletePurchase(purchaseId) {

@@ -1,7 +1,10 @@
 import { IsNumber, IsString } from 'class-validator';
 import { IsUniqArray } from './decorators/IsUniqArray';
 
-export class CreatePurchase {
+export class UpdatePurchase {
+    @IsNumber()
+    id: number;
+
     @IsString()
     name: string;
 
