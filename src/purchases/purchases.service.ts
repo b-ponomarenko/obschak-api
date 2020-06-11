@@ -21,7 +21,7 @@ export class PurchasesService {
 
         try {
             const { name, value, currency, creatorId, participants } = body;
-            const { event } = await this.eventsService.getOneEvent(eventId);
+            const event = await this.eventsService.getOneEvent(eventId);
 
             if (
                 !participants.every((userId) => event.users.includes(userId)) ||
@@ -42,9 +42,7 @@ export class PurchasesService {
 
             await queryRunner.commitTransaction();
 
-            return {
-                purchase: omit(['event'], purchase),
-            };
+            return omit(['event'], purchase);
         } catch (e) {
             await queryRunner.rollbackTransaction();
             return new InternalServerErrorException(e);
@@ -82,9 +80,7 @@ export class PurchasesService {
             await manager.save(purchase);
             await queryRunner.commitTransaction();
 
-            return {
-                purchase: omit(['event'], purchase),
-            };
+            return omit(['event'], purchase);
         } catch (e) {
             await queryRunner.rollbackTransaction();
             throw new InternalServerErrorException(e);
@@ -94,11 +90,7 @@ export class PurchasesService {
     }
 
     public async getOne(purchaseId) {
-        const purchase = await this.connection.manager.findOne(Purchase, purchaseId);
-
-        return {
-            purchase,
-        };
+        return this.connection.manager.findOne(Purchase, purchaseId);
     }
 
     public async deletePurchase(purchaseId) {

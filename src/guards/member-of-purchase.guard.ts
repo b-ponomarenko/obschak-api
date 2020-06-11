@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Connection } from 'typeorm';
-import { Purchase } from './entities/Purchase';
+import { Purchase } from '../entities/Purchase';
 
 @Injectable()
 export class MemberOfPurchaseGuard implements CanActivate {
