@@ -5,8 +5,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Event } from './entities/Event';
 import { Purchase } from './entities/Purchase';
 import { EventsController } from './events/events.controller';
-import { EventUser } from './entities/EventUser';
-import { PurchaseUser } from './entities/PurchaseUser';
 import { EventsService } from './events/events.service';
 import { ConfigModule } from '@nestjs/config';
 import { PurchasesService } from './purchases/purchases.service';
@@ -21,7 +19,7 @@ import { PurchasesController } from './purchases/purchases.controller';
             username: 'postgres',
             password: 'root',
             database: 'obschak',
-            entities: [Event, EventUser, Purchase, PurchaseUser],
+            entities: [Event, Purchase],
             synchronize: true,
             logging: true
         }),

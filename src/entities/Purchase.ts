@@ -1,6 +1,5 @@
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Event } from './Event';
-import { PurchaseUser } from './PurchaseUser';
 
 @Entity('purchases')
 export class Purchase {
@@ -25,6 +24,6 @@ export class Purchase {
     @ManyToOne(() => Event, (event) => event.purchases, { onDelete: 'CASCADE' })
     event: Event;
 
-    @OneToMany(() => PurchaseUser, (purchaseUser) => purchaseUser.purchase)
-    participants: PurchaseUser[];
+    @Column('json')
+    participants: number[];
 }

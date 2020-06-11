@@ -12,12 +12,12 @@ export class MemberOfEventGuard implements CanActivate {
     const { params, headers } = context.switchToHttp().getRequest();
     const { eventId } = params;
     const { vk_user_id } = headers;
-    const event = await this.connection.manager.findOne(Event, eventId, { relations: ['users'] });
+    const event = await this.connection.manager.findOne(Event, eventId);
 
     if (!event) {
       return false;
     }
 
-    return event.users.map(({ userId }) => userId).includes(Number(vk_user_id));
+    return event.users.includes(Number(vk_user_id));
   }
 }

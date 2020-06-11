@@ -2,8 +2,10 @@ import { Body, Controller, Delete, Get, Param, Put, UseGuards } from '@nestjs/co
 import { PurchasesService } from './purchases.service';
 import { MemberOfPurchaseGuard } from '../member-of-purchase.guard';
 import { UpdatePurchase } from '../validations/UpdatePurchase';
+import { RolesGuard } from '../roles.guard';
 
 @Controller('purchases')
+@UseGuards(RolesGuard)
 export class PurchasesController {
     constructor(private purchasesService: PurchasesService) {}
 

@@ -1,5 +1,4 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { EventUser } from './EventUser';
 import { Purchase } from './Purchase';
 
 @Entity('events')
@@ -22,8 +21,8 @@ export class Event {
     @Column('int4')
     creatorId: number;
 
-    @OneToMany(() => EventUser, (eventUser) => eventUser.event)
-    users: EventUser[];
+    @Column('json')
+    users: number[];
 
     @OneToMany(() => Purchase, (purchase) => purchase.event)
     purchases: Purchase[];
