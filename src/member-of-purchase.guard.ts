@@ -11,13 +11,13 @@ export class MemberOfPurchaseGuard implements CanActivate {
         const { purchaseId } = params;
         const { vk_user_id } = headers;
         const purchase = await this.connection.manager.findOne(Purchase, purchaseId, {
-            relations: ['event', 'event.users'],
+            relations: ['event'],
         });
 
         if (!purchase) {
             return false;
         }
 
-        return purchase.event.users.map(({ userId }) => userId).includes(Number(vk_user_id));
+        return purchase.event.users.includes(Number(vk_user_id));
     }
 }

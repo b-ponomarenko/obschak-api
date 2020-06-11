@@ -1,5 +1,4 @@
 import { Injectable, InternalServerErrorException, ForbiddenException } from '@nestjs/common';
-import { PurchaseUser } from '../entities/PurchaseUser';
 import { Purchase } from '../entities/Purchase';
 import { Connection } from 'typeorm';
 import { EventsService } from '../events/events.service';
@@ -21,21 +20,15 @@ export class PurchasesService {
         const { manager } = queryRunner;
 
         try {
-            const { name, value, currency, creatorId } = body;
+            const { name, value, currency, creatorId, participants } = body;
             const { event } = await this.eventsService.getOneEvent(eventId);
 
             if (
-                !body.participants.every((userId) => event.users.includes(userId)) ||
+                !participants.every((userId) => event.users.includes(userId)) ||
                 !event.users.includes(creatorId)
             ) {
                 throw new ForbiddenException();
             }
-
-            const participants = body.participants.map((userId) =>
-                manager.create(PurchaseUser, { userId }),
-            );
-
-            await Promise.all(participants.map((participant) => manager.save(participant)));
 
             const purchase = await manager.save(Purchase, {
                 name,
@@ -50,10 +43,7 @@ export class PurchasesService {
             await queryRunner.commitTransaction();
 
             return {
-                purchase: {
-                    ...omit(['event'], purchase),
-                    participants: purchase.participants.map(({ userId }) => userId),
-                },
+                purchase: omit(['event'], purchase),
             };
         } catch (e) {
             await queryRunner.rollbackTransaction();
@@ -71,14 +61,13 @@ export class PurchasesService {
 
         const { manager } = queryRunner;
         const purchase = await manager.findOne(Purchase, purchaseId, {
-            relations: ['participants', 'event', 'event.users'],
+            relations: ['event'],
         });
-        const eventUsers = purchase.event.users.map(({ userId }) => userId);
         const { name, value, currency, participants, creatorId } = body;
 
         if (
-            !eventUsers.includes(creatorId) ||
-            !participants.every((userId) => eventUsers.includes(userId))
+            !purchase.event.users.includes(creatorId) ||
+            !participants.every((userId) => purchase.event.users.includes(userId))
         ) {
             throw new ForbiddenException();
         }
@@ -88,19 +77,13 @@ export class PurchasesService {
             purchase.value = value;
             purchase.currency = currency;
             purchase.creatorId = creatorId;
-            purchase.participants = await Promise.all<PurchaseUser>(
-                participants.map((userId) => manager.save(PurchaseUser, { purchase, userId })),
-            );
+            purchase.participants = participants;
 
             await manager.save(purchase);
-            await manager.delete(PurchaseUser, { purchase: { id: null } });
             await queryRunner.commitTransaction();
 
             return {
-                purchase: {
-                    ...omit(['event'], purchase),
-                    participants,
-                },
+                purchase: omit(['event'], purchase),
             };
         } catch (e) {
             await queryRunner.rollbackTransaction();
@@ -111,15 +94,10 @@ export class PurchasesService {
     }
 
     public async getOne(purchaseId) {
-        const purchase = await this.connection.manager.findOne(Purchase, purchaseId, {
-            relations: ['participants'],
-        });
+        const purchase = await this.connection.manager.findOne(Purchase, purchaseId);
 
         return {
-            purchase: {
-                ...purchase,
-                participants: purchase.participants.map(({ userId }) => userId),
-            },
+            purchase,
         };
     }
 
