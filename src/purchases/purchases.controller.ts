@@ -1,8 +1,15 @@
 import { Body, Controller, Delete, Get, Param, Put, UseGuards } from '@nestjs/common';
 import { PurchasesService } from './purchases.service';
-import { MemberOfPurchaseGuard } from '../member-of-purchase.guard';
+import { MemberOfPurchaseGuard } from '../guards/member-of-purchase.guard';
 import { UpdatePurchase } from '../validations/UpdatePurchase';
-import { RolesGuard } from '../roles.guard';
+import { RolesGuard } from '../guards/roles.guard';
+import { sortUsers } from '../utils/sortUsers';
+import { VkUserId } from '../decorators/VkUserId';
+
+export const processPurchaseData = (purchase, userId) => ({
+    ...purchase,
+    participants: sortUsers(purchase.participants, userId),
+});
 
 @Controller('purchases')
 @UseGuards(RolesGuard)
@@ -11,8 +18,10 @@ export class PurchasesController {
 
     @UseGuards(MemberOfPurchaseGuard)
     @Get(':purchaseId')
-    async getPurchase(@Param('purchaseId') purchaseId) {
-        return this.purchasesService.getOne(purchaseId);
+    async getPurchase(@Param('purchaseId') purchaseId, @VkUserId() userId) {
+        return this.purchasesService
+            .getOne(purchaseId)
+            .then((purchase) => ({ purchase: processPurchaseData(purchase, userId) }));
     }
 
     @UseGuards(MemberOfPurchaseGuard)
@@ -23,7 +32,13 @@ export class PurchasesController {
 
     @UseGuards(MemberOfPurchaseGuard)
     @Put(':purchaseId')
-    async updatePurchase(@Param('purchaseId') purchaseId, @Body() body: UpdatePurchase) {
-        return this.purchasesService.updatePurchase(purchaseId, body);
+    async updatePurchase(
+        @Param('purchaseId') purchaseId,
+        @Body() body: UpdatePurchase,
+        @VkUserId() userId,
+    ) {
+        return this.purchasesService
+            .updatePurchase(purchaseId, body)
+            .then((purchase) => ({ purchase: processPurchaseData(purchase, userId) }));
     }
 }

@@ -1,5 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { Event } from './entities/Event';
+import { Event } from '../entities/Event';
 import { Connection } from 'typeorm';
 
 @Injectable()

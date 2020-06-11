@@ -26,7 +26,7 @@ export class EventsService {
 
             await queryRunner.commitTransaction();
 
-            return { event };
+            return event;
         } catch (e) {
             await queryRunner.rollbackTransaction();
             throw new InternalServerErrorException(e);
@@ -70,7 +70,7 @@ export class EventsService {
 
             await queryRunner.commitTransaction();
 
-            return { event };
+            return event;
         } catch (e) {
             await queryRunner.rollbackTransaction();
             throw new InternalServerErrorException(e);
@@ -111,20 +111,14 @@ export class EventsService {
         );
 
         return {
-            event: {
-                ...event,
-                purchases: sortBy(({ date }) => -date, event.purchases),
-            },
+            ...event,
+            purchases: sortBy(({ date }) => -date, event.purchases),
         };
     }
 
     public async getEvents(userId: number) {
-        const events = await this.connection.manager.find(Event).then((events) => {
+        return this.connection.manager.find(Event).then((events) => {
             return events.filter((event) => event.users.includes(userId));
         });
-
-        return {
-            events,
-        };
     }
 }
