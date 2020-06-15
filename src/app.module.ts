@@ -9,6 +9,9 @@ import { EventsService } from './events/events.service';
 import { ConfigModule } from '@nestjs/config';
 import { PurchasesService } from './purchases/purchases.service';
 import { PurchasesController } from './purchases/purchases.controller';
+import { Transfer } from './entities/Transfer';
+import { TransfersService } from './transfers/transfers.service';
+import { TransfersController } from './transfers/transfers.controller';
 
 @Module({
     imports: [
@@ -19,7 +22,7 @@ import { PurchasesController } from './purchases/purchases.controller';
             username: 'postgres',
             password: 'root',
             database: 'obschak',
-            entities: [Event, Purchase],
+            entities: [Event, Purchase, Transfer],
             synchronize: true,
             logging: true
         }),
@@ -27,7 +30,7 @@ import { PurchasesController } from './purchases/purchases.controller';
             isGlobal: true,
         })
     ],
-    controllers: [AppController, EventsController, PurchasesController],
-    providers: [AppService, EventsService, PurchasesService],
+    controllers: [AppController, EventsController, PurchasesController, TransfersController],
+    providers: [AppService, EventsService, PurchasesService, TransfersService],
 })
 export class AppModule {}

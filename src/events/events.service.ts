@@ -3,6 +3,7 @@ import { Connection } from 'typeorm';
 import { Event } from '../entities/Event';
 import sortBy from '@tinkoff/utils/array/sortBy';
 import { Purchase } from '../entities/Purchase';
+import { Transfer } from '../entities/Transfer';
 
 @Injectable()
 export class EventsService {
@@ -45,7 +46,7 @@ export class EventsService {
 
         try {
             const event = await manager.findOne(Event, eventId, {
-                relations: ['purchases'],
+                relations: ['purchases', 'transfers'],
             });
             const { photo = null, users, title } = body;
 
@@ -64,8 +65,12 @@ export class EventsService {
                         ...newUsers,
                     ],
                 }));
+            event.transfers = event.transfers.filter(
+                ({ from, to }) => body.users.includes(from) && body.users.includes(to),
+            );
 
-            await Promise.all(event.purchases.map(purchase => manager.save(Purchase, purchase)));
+            await Promise.all(event.purchases.map((purchase) => manager.save(Purchase, purchase)));
+            await Promise.all(event.transfers.map((transfer) => manager.save(Transfer, transfer)));
             await manager.save(event);
 
             await queryRunner.commitTransaction();
@@ -102,13 +107,9 @@ export class EventsService {
     }
 
     public async getOneEvent(eventId: number) {
-        const event = await this.connection.manager.findOne(
-            Event,
-            {
-                id: eventId,
-            },
-            { relations: ['purchases'] },
-        );
+        const event = await this.connection.manager.findOne(Event, eventId, {
+            relations: ['purchases', 'transfers'],
+        });
 
         return {
             ...event,

@@ -1,5 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Purchase } from './Purchase';
+import { Transfer } from './Transfer';
 
 @Entity('events')
 export class Event {
@@ -26,4 +27,7 @@ export class Event {
 
     @OneToMany(() => Purchase, (purchase) => purchase.event)
     purchases: Purchase[];
+
+    @OneToMany(() => Transfer, (transfer) => transfer.event)
+    transfers: Transfer[];
 }

@@ -6,7 +6,6 @@ import {
     Post,
     UseGuards,
     Param,
-    createParamDecorator,
     Put,
     Delete,
 } from '@nestjs/common';
@@ -22,6 +21,8 @@ import { sortUsers } from '../utils/sortUsers';
 import isEmpty from '@tinkoff/utils/is/empty';
 import { processPurchaseData } from '../purchases/purchases.controller';
 import { VkUserId } from '../decorators/VkUserId';
+import { CreateTransfer } from '../validations/CreateTransfer';
+import { TransfersService } from '../transfers/transfers.service';
 
 const processEventData = (event, userId) => ({
     ...event,
@@ -37,7 +38,11 @@ const processEventData = (event, userId) => ({
 @Controller('events')
 @UseGuards(RolesGuard)
 export class EventsController {
-    constructor(private eventsService: EventsService, private purchasesService: PurchasesService) {}
+    constructor(
+        private eventsService: EventsService,
+        private purchasesService: PurchasesService,
+        private transfersService: TransfersService,
+    ) {}
 
     @Post()
     @HttpCode(200)
@@ -81,6 +86,13 @@ export class EventsController {
         return this.purchasesService
             .createPurchase(body, eventId)
             .then((purchase) => ({ purchase: processPurchaseData(purchase, userId) }));
+    }
+
+    @UseGuards(MemberOfEventGuard)
+    @Post(':eventId/transfers')
+    @HttpCode(200)
+    async createTransfer(@Body() body: CreateTransfer, @Param('eventId') eventId) {
+        return this.transfersService.createTransfer(body, eventId);
     }
 
     @UseGuards(CreatorOfEventGuard)
