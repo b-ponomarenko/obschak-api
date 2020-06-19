@@ -1,0 +1,57 @@
+import { Injectable } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
+import { VkService } from '../vk/vk.service';
+import { EventsService } from '../events/events.service';
+import getDebtList from '../utils/getDebtList';
+import { ConfigService } from '@nestjs/config';
+import { addDays, startOfDay, isBefore } from 'date-fns';
+
+const currencies = {
+    RUB: '₽',
+};
+
+@Injectable()
+export class TasksService {
+    constructor(
+        private vkService: VkService,
+        private eventsService: EventsService,
+        private configService: ConfigService,
+    ) {}
+
+    @Cron('0 14-17 * * */2')
+    async handleCron() {
+        const now = new Date();
+        const events = await this.eventsService
+            .getEventsDeep()
+            .then((events) =>
+                events.filter(({ endDate }) =>
+                    isBefore(addDays(startOfDay(new Date(endDate)), 1), now),
+                ),
+            );
+        const purchases = events.map(({ purchases }) => purchases).flat();
+        const transfers = events.map(({ transfers }) => transfers).flat();
+        const debts = Object.values(
+            getDebtList(purchases, transfers).reduce((memo, { from, currency, value }) => {
+                if (memo[from]) {
+                    return { ...memo, [from]: { from, currency, value: memo[from].value + value } };
+                }
+
+                return { ...memo, [from]: { from, currency, value } };
+            }, {}),
+        );
+
+        await Promise.all(
+            debts.map(({ from, currency, value }) =>
+                this.vkService.vk.api.notifications
+                    .sendMessage({
+                        user_ids: [from],
+                        message: `Вы должны вашим друзьям ${value.toLocaleString('ru')} ${
+                            currencies[currency]
+                        }. Пожалуйста, выполните перевод и подтвердите это в приложении`,
+                        access_token: this.configService.get('VK_TOKEN'),
+                    })
+                    .catch((e) => e),
+            ),
+        );
+    }
+}

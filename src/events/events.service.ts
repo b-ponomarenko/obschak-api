@@ -122,4 +122,8 @@ export class EventsService {
             return events.filter((event) => event.users.includes(userId));
         });
     }
+
+    public async getEventsDeep() {
+        return this.connection.manager.find(Event, { relations: ['purchases', 'transfers'] })
+    }
 }

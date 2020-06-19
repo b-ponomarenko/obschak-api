@@ -12,6 +12,9 @@ import { PurchasesController } from './purchases/purchases.controller';
 import { Transfer } from './entities/Transfer';
 import { TransfersService } from './transfers/transfers.service';
 import { TransfersController } from './transfers/transfers.controller';
+import { TasksService } from './tasks/tasks.service';
+import { ScheduleModule } from '@nestjs/schedule';
+import { VkService } from './vk/vk.service';
 
 @Module({
     imports: [
@@ -28,9 +31,10 @@ import { TransfersController } from './transfers/transfers.controller';
         }),
         ConfigModule.forRoot({
             isGlobal: true,
-        })
+        }),
+        ScheduleModule.forRoot()
     ],
     controllers: [AppController, EventsController, PurchasesController, TransfersController],
-    providers: [AppService, EventsService, PurchasesService, TransfersService],
+    providers: [AppService, EventsService, PurchasesService, TransfersService, TasksService, VkService],
 })
 export class AppModule {}

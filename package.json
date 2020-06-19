@@ -26,17 +26,20 @@
         "@nestjs/config": "^0.5.0",
         "@nestjs/core": "^7.0.0",
         "@nestjs/platform-express": "^7.0.0",
+        "@nestjs/schedule": "^0.4.0",
         "@nestjs/typeorm": "^7.0.1",
         "@tinkoff/utils": "^2.1.2",
         "class-transformer": "^0.2.3",
         "class-validator": "^0.12.2",
+        "date-fns": "^2.14.0",
         "husky": "^4.2.5",
         "imagekit": "^3.0.5",
         "pg": "^8.2.1",
         "reflect-metadata": "^0.1.13",
         "rimraf": "^3.0.2",
         "rxjs": "^6.5.4",
-        "typeorm": "^0.2.25"
+        "typeorm": "^0.2.25",
+        "vk-io": "^4.0.0-rc.30"
     },
     "devDependencies": {
         "@nestjs/cli": "^7.0.0",
@@ -58,7 +61,7 @@
         "ts-loader": "^6.2.1",
         "ts-node": "^8.6.2",
         "tsconfig-paths": "^3.9.0",
-        "typescript": "^3.7.4"
+        "typescript": "^3.9.5"
     },
     "jest": {
         "moduleFileExtensions": [
