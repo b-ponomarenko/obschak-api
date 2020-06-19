@@ -1,8 +1,10 @@
 import { Controller, Delete, Param, UseGuards } from '@nestjs/common';
 import { MemberOfTransferGuard } from '../guards/member-of-transfer.guard';
 import { TransfersService } from './transfers.service';
+import { RolesGuard } from '../guards/roles.guard';
 
 @Controller('transfers')
+@UseGuards(RolesGuard)
 export class TransfersController {
     constructor(private transfersService: TransfersService) {}
 
