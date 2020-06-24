@@ -15,7 +15,7 @@ export class Purchase {
     @Column('varchar')
     currency: string;
 
-    @Column('int')
+    @Column('int4')
     creatorId: number;
 
     @Column('timestamp')
@@ -24,6 +24,6 @@ export class Purchase {
     @ManyToOne(() => Event, (event) => event.purchases, { onDelete: 'CASCADE' })
     event: Event;
 
-    @Column({ type: 'text', transformer: { to: JSON.stringify, from: JSON.parse } })
+    @Column('json')
     participants: number[];
 }

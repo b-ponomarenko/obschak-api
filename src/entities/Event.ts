@@ -19,10 +19,10 @@ export class Event {
     @Column('timestamp')
     endDate: string;
 
-    @Column('int')
+    @Column('int4')
     creatorId: number;
 
-    @Column({ type: 'text', transformer: { to: JSON.stringify, from: JSON.parse } })
+    @Column('json')
     users: number[];
 
     @OneToMany(() => Purchase, (purchase) => purchase.event)

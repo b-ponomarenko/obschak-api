@@ -5,7 +5,7 @@ import { ValidationPipe } from '@nestjs/common';
 const fs = require('fs');
 
 async function bootstrap() {
-    const app = await NestFactory.create(AppModule, {
+    const app = await NestFactory.create(AppModule, process.env.NODE_ENV === 'production' ? undefined : {
         httpsOptions: {
             key: fs.readFileSync(`${process.cwd()}/server.key`),
             cert: fs.readFileSync(`${process.cwd()}/server.crt`)
@@ -13,6 +13,6 @@ async function bootstrap() {
     });
     app.enableCors();
     app.useGlobalPipes(new ValidationPipe())
-    await app.listen(3000);
+    await app.listen(process.env.PORT || 5000);
 }
 bootstrap();
