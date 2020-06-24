@@ -23,7 +23,7 @@ import { VkService } from './vk/vk.service';
             useFactory: (configService: ConfigService) => ({
                 type: 'mysql',
                 host: configService.get('DB_HOST'),
-                port: configService.get('DB_PORT'),
+                port: Number(configService.get('DB_PORT')),
                 username: configService.get('DB_USER'),
                 database: configService.get('DB_NAME'),
                 password: configService.get('DB_PASS'),
