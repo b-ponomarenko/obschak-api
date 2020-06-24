@@ -6,10 +6,10 @@ export class Transfer {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column('int')
+    @Column('int4')
     from: number;
 
-    @Column('int')
+    @Column('int4')
     to: number;
 
     @Column('real')
