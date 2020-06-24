@@ -21,7 +21,7 @@ import { VkService } from './vk/vk.service';
         TypeOrmModule.forRootAsync({
             imports: [ConfigService],
             useFactory: (configService: ConfigService) => ({
-                type: 'postgres',
+                type: 'mysql',
                 host: configService.get('DB_HOST'),
                 port: Number(configService.get('DB_PORT')),
                 username: configService.get('DB_USER'),
