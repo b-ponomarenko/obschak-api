@@ -7,7 +7,7 @@
     "license": "UNLICENSED",
     "scripts": {
         "prebuild": "rimraf dist",
-        "build": "nest build",
+        "build": "NODE_ENV=production nest build",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
         "start": "nest start",
         "start:dev": "nest start --watch",
@@ -34,7 +34,7 @@
         "date-fns": "^2.14.0",
         "husky": "^4.2.5",
         "imagekit": "^3.0.5",
-        "pg": "^8.2.1",
+        "mysql": "^2.18.1",
         "reflect-metadata": "^0.1.13",
         "rimraf": "^3.0.2",
         "rxjs": "^6.5.4",
