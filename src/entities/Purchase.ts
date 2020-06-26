@@ -26,4 +26,7 @@ export class Purchase {
 
     @Column('json')
     participants: number[];
+
+    @Column({ type: 'json', default: [] })
+    receipts: string[]
 }

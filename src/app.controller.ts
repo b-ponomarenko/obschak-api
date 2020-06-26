@@ -30,7 +30,7 @@ export class AppController {
                 fileName: file.originalname,
             });
 
-            return { image: `${this.configService.get('IMAGEKIT_URL')}/tr:w-72,h-72${filePath}` };
+            return { image: filePath };
         } catch (e) {
             return new BadRequestException(e);
         }
