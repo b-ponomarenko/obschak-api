@@ -20,7 +20,7 @@ export class PurchasesService {
         const { manager } = queryRunner;
 
         try {
-            const { name, value, currency, creatorId, participants } = body;
+            const { name, value, currency, creatorId, participants, receipts = [] } = body;
             const event = await this.eventsService.getOneEvent(eventId);
 
             if (
@@ -36,6 +36,7 @@ export class PurchasesService {
                 currency,
                 creatorId,
                 participants,
+                receipts,
                 event: { id: event.id },
                 date: new Date().toISOString(),
             });
@@ -61,7 +62,7 @@ export class PurchasesService {
         const purchase = await manager.findOne(Purchase, purchaseId, {
             relations: ['event'],
         });
-        const { name, value, currency, participants, creatorId } = body;
+        const { name, value, currency, participants, receipts, creatorId } = body;
 
         if (
             !purchase.event.users.includes(creatorId) ||
@@ -76,6 +77,7 @@ export class PurchasesService {
             purchase.currency = currency;
             purchase.creatorId = creatorId;
             purchase.participants = participants;
+            purchase.receipts = receipts;
 
             await manager.save(purchase);
             await queryRunner.commitTransaction();
