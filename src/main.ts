@@ -11,6 +11,7 @@ async function bootstrap() {
             cert: fs.readFileSync(`${process.cwd()}/server.crt`)
         }
     });
+    console.log('DB_NAME', process.env.DB_NAME);
     app.enableCors();
     app.useGlobalPipes(new ValidationPipe())
     await app.listen(process.env.PORT || 5000);
