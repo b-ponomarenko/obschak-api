@@ -11,7 +11,9 @@ async function bootstrap() {
             cert: fs.readFileSync(`${process.cwd()}/server.crt`)
         }
     });
-    app.enableCors();
+    app.enableCors({
+        origin: /vk-apps.com/g
+    });
     app.useGlobalPipes(new ValidationPipe())
     await app.listen(process.env.PORT || 5000);
 }
