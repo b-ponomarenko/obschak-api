@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable, NotFoundException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Connection } from 'typeorm';
 import { Transfer } from '../entities/Transfer';
 
@@ -15,9 +15,13 @@ export class MemberOfTransferGuard implements CanActivate {
         });
 
         if (!transfer) {
-            throw new NotFoundException();
+            throw new NotFoundException(`Перевода с id=${transferId} не существует`);
         }
 
-        return transfer.event.users.includes(Number(vk_user_id));
+        if (!transfer.event.users.includes(Number(vk_user_id))) {
+            throw new ForbiddenException(`Вы не являетесь участником данного события`);
+        }
+
+        return true;
     }
 }

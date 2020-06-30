@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Event } from '../entities/Event';
 import { Connection } from 'typeorm';
 
@@ -13,9 +13,13 @@ export class CreatorOfEventGuard implements CanActivate {
         const event = await this.connection.manager.findOne(Event, eventId);
 
         if (!event) {
-            return false;
+            throw new NotFoundException(`События с id=${eventId} не существует`);
         }
 
-        return Number(vk_user_id) === event.creatorId;
+        if (Number(vk_user_id) !== event.creatorId) {
+            throw new ForbiddenException(`Только создатель события может выполнить данный запрос`)
+        }
+
+        return true;
     }
 }
