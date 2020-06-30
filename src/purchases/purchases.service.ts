@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException, ForbiddenException } from '@nestjs/common';
+import {
+    Injectable,
+    InternalServerErrorException,
+    BadRequestException,
+} from '@nestjs/common';
 import { Purchase } from '../entities/Purchase';
 import { Connection } from 'typeorm';
 import { EventsService } from '../events/events.service';
@@ -27,7 +31,9 @@ export class PurchasesService {
                 !participants.every((userId) => event.users.includes(userId)) ||
                 !event.users.includes(creatorId)
             ) {
-                throw new ForbiddenException();
+                throw new BadRequestException(
+                    'Вы не можете добавить в покупку пользователя, который не является участником события',
+                );
             }
 
             const purchase = await manager.save(Purchase, {
@@ -68,7 +74,7 @@ export class PurchasesService {
             !purchase.event.users.includes(creatorId) ||
             !participants.every((userId) => purchase.event.users.includes(userId))
         ) {
-            throw new ForbiddenException();
+            throw new BadRequestException('Вы не можете добавить в покупку пользователя, который не является участником события');
         }
 
         try {

@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import filter from '@tinkoff/utils/object/filter';
 import toPairs from '@tinkoff/utils/object/toPairs';
@@ -37,6 +37,12 @@ export class RolesGuard implements CanActivate {
             .replace(/\//g, '_')
             .replace(/=$/, '');
 
-        return sign === builtSign;
+        if (sign !== builtSign) {
+            throw new UnauthorizedException(
+                'Для выполнения данного действия вы должны быть авторизованы',
+            );
+        }
+
+        return true;
     }
 }

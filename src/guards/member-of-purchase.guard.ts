@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Connection } from 'typeorm';
 import { Purchase } from '../entities/Purchase';
 
@@ -15,9 +15,13 @@ export class MemberOfPurchaseGuard implements CanActivate {
         });
 
         if (!purchase) {
-            return false;
+            throw new NotFoundException(`Покупки с id=${purchaseId} не существует`);
         }
 
-        return purchase.event.users.includes(Number(vk_user_id));
+        if (!purchase.event.users.includes(Number(vk_user_id))) {
+            throw new ForbiddenException(`Вы не являетесь участником данного события`);
+        }
+
+        return true;
     }
 }
