@@ -17,12 +17,12 @@ async function bootstrap() {
               },
     );
     app.enableCors({
-        origin: (requestOrigin, cb) => {
+        origin: (requestOrigin = '', cb) => {
             if (requestOrigin.includes('vk-apps.com')) {
                 return cb(null, true);
             }
-0
-            return cb(new Error('Not allowed'), false);
+
+            return cb(null, false);
         },
     });
     app.useGlobalPipes(new ValidationPipe());
