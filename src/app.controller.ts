@@ -9,6 +9,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import ImageKit from 'imagekit';
 import { ConfigService } from '@nestjs/config';
+import { RateLimit } from 'nestjs-rate-limiter';
 
 @Controller()
 export class AppController {
@@ -20,6 +21,7 @@ export class AppController {
 
     constructor(private configService: ConfigService) {}
 
+    @RateLimit({ points: 5, duration: 10 })
     @Post('upload')
     @HttpCode(200)
     @UseInterceptors(FileInterceptor('image'))

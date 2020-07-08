@@ -9,7 +9,7 @@ export class Purchase {
     @Column('varchar')
     name: string;
 
-    @Column('real')
+    @Column('double precision')
     value: number;
 
     @Column('varchar')

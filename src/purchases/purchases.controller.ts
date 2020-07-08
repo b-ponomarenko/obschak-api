@@ -5,6 +5,7 @@ import { UpdatePurchase } from '../validations/UpdatePurchase';
 import { RolesGuard } from '../guards/roles.guard';
 import { sortUsers } from '../utils/sortUsers';
 import { VkUserId } from '../decorators/VkUserId';
+import { RateLimit } from 'nestjs-rate-limiter';
 
 export const processPurchaseData = (purchase, userId) => ({
     ...purchase,
@@ -25,12 +26,14 @@ export class PurchasesController {
     }
 
     @UseGuards(MemberOfPurchaseGuard)
+    @RateLimit({ points: 5, duration: 10 })
     @Delete(':purchaseId')
     async deletePurchase(@Param('purchaseId') purchaseId) {
         return this.purchasesService.deletePurchase(purchaseId);
     }
 
     @UseGuards(MemberOfPurchaseGuard)
+    @RateLimit({ points: 5, duration: 10 })
     @Put(':purchaseId')
     async updatePurchase(
         @Param('purchaseId') purchaseId,
