@@ -1,9 +1,10 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ForbiddenException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { Connection } from 'typeorm';
 import { Event } from '../entities/Event';
 import sortBy from '@tinkoff/utils/array/sortBy';
 import { Purchase } from '../entities/Purchase';
 import { Transfer } from '../entities/Transfer';
+import isEmpty from '@tinkoff/utils/is/empty';
 
 @Injectable()
 export class EventsService {
@@ -44,14 +45,21 @@ export class EventsService {
 
         const { manager } = queryRunner;
 
+        const event = await manager.findOne(Event, eventId, {
+            relations: ['purchases', 'transfers'],
+        });
+        const { photo = null, users, title } = body;
+
+        const newUsers = body.users.filter((id) => !event.users.includes(id));
+        const deletableUsers = event.users.filter((id) => !body.users.includes(id));
+
+        if (!isEmpty(deletableUsers) && userId !== event.creatorId) {
+            throw new ForbiddenException(
+                `Только создатель события события может выполнить данный запрос`,
+            );
+        }
+
         try {
-            const event = await manager.findOne(Event, eventId, {
-                relations: ['purchases', 'transfers'],
-            });
-            const { photo = null, users, title } = body;
-
-            const newUsers = body.users.filter((id) => !event.users.includes(id));
-
             event.photo = photo;
             event.title = title;
 
@@ -124,6 +132,6 @@ export class EventsService {
     }
 
     public async getEventsDeep() {
-        return this.connection.manager.find(Event, { relations: ['purchases', 'transfers'] })
+        return this.connection.manager.find(Event, { relations: ['purchases', 'transfers'] });
     }
 }

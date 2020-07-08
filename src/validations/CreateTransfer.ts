@@ -1,4 +1,4 @@
-import { IsNumber, IsString } from 'class-validator';
+import { Equals, IsNumber, IsPositive } from 'class-validator';
 
 export class CreateTransfer {
     @IsNumber()
@@ -8,8 +8,9 @@ export class CreateTransfer {
     to: number;
 
     @IsNumber()
+    @IsPositive()
     value: number;
 
-    @IsString()
+    @Equals('RUB')
     currency: string;
 }

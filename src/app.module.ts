@@ -15,6 +15,8 @@ import { TransfersController } from './transfers/transfers.controller';
 import { TasksService } from './tasks/tasks.service';
 import { ScheduleModule } from '@nestjs/schedule';
 import { VkService } from './vk/vk.service';
+import { RateLimiterInterceptor, RateLimiterModule } from 'nestjs-rate-limiter';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 
 @Module({
     imports: [
@@ -37,6 +39,7 @@ import { VkService } from './vk/vk.service';
             isGlobal: true,
         }),
         ScheduleModule.forRoot(),
+        RateLimiterModule,
     ],
     controllers: [AppController, EventsController, PurchasesController, TransfersController],
     providers: [
@@ -46,6 +49,10 @@ import { VkService } from './vk/vk.service';
         TransfersService,
         TasksService,
         VkService,
+        {
+            provide: APP_INTERCEPTOR,
+            useClass: RateLimiterInterceptor,
+        }
     ],
 })
 export class AppModule {}

@@ -12,7 +12,7 @@ export class Transfer {
     @Column('int4')
     to: number;
 
-    @Column('real')
+    @Column('double precision')
     value: number;
 
     @Column('varchar')

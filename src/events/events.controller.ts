@@ -23,6 +23,7 @@ import { processPurchaseData } from '../purchases/purchases.controller';
 import { VkUserId } from '../decorators/VkUserId';
 import { CreateTransfer } from '../validations/CreateTransfer';
 import { TransfersService } from '../transfers/transfers.service';
+import { RateLimit } from 'nestjs-rate-limiter';
 
 const processEventData = (event, userId) => ({
     ...event,
@@ -44,6 +45,7 @@ export class EventsController {
         private transfersService: TransfersService,
     ) {}
 
+    @RateLimit({ points: 5, duration: 10 })
     @Post()
     @HttpCode(200)
     async createEvent(@Body() body: CreateEvent, @VkUserId() userId) {
@@ -53,6 +55,7 @@ export class EventsController {
     }
 
     @UseGuards(MemberOfEventGuard)
+    @RateLimit({ points: 5, duration: 10 })
     @Put(':eventId')
     async updateEvent(@Body() body: UpdateEvent, @VkUserId() userId, @Param('eventId') eventId) {
         return this.eventsService
@@ -76,6 +79,7 @@ export class EventsController {
     }
 
     @UseGuards(MemberOfEventGuard)
+    @RateLimit({ points: 5, duration: 10 })
     @Post(':eventId/purchases')
     @HttpCode(200)
     async createPurchase(
@@ -89,6 +93,7 @@ export class EventsController {
     }
 
     @UseGuards(MemberOfEventGuard)
+    @RateLimit({ points: 5, duration: 10 })
     @Post(':eventId/transfers')
     @HttpCode(200)
     async createTransfer(@Body() body: CreateTransfer, @Param('eventId') eventId) {
@@ -96,6 +101,7 @@ export class EventsController {
     }
 
     @UseGuards(CreatorOfEventGuard)
+    @RateLimit({ points: 5, duration: 10 })
     @Delete(':eventId')
     async deleteEvent(@Param('eventId') eventId) {
         return this.eventsService.deleteEvent(eventId);
