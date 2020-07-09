@@ -52,8 +52,10 @@ export class EventsService {
 
         const newUsers = body.users.filter((id) => !event.users.includes(id));
         const deletableUsers = event.users.filter((id) => !body.users.includes(id));
+        const leaveEvent = deletableUsers.length === 1 && deletableUsers[0] === userId;
 
-        if (!isEmpty(deletableUsers) && userId !== event.creatorId) {
+        // TODO для кейса с выходом из события сделать отдельный метод
+        if (!isEmpty(deletableUsers) && userId !== event.creatorId && !leaveEvent) {
             throw new ForbiddenException(
                 `Только создатель события события может выполнить данный запрос`,
             );
