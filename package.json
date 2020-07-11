@@ -33,6 +33,7 @@
         "class-transformer": "^0.2.3",
         "class-validator": "^0.12.2",
         "date-fns": "^2.14.0",
+        "format-number": "^3.0.0",
         "husky": "^4.2.5",
         "imagekit": "^3.0.5",
         "nestjs-rate-limiter": "^1.0.1",
