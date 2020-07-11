@@ -5,6 +5,7 @@ import { EventsService } from '../events/events.service';
 import getDebtList from '../utils/getDebtList';
 import { ConfigService } from '@nestjs/config';
 import { addDays, startOfDay, isBefore } from 'date-fns';
+import formatNumber from 'format-number';
 
 const currencies = {
     RUB: '₽',
@@ -45,7 +46,10 @@ export class TasksService {
                 this.vkService.vk.api.notifications
                     .sendMessage({
                         user_ids: [from],
-                        message: `Вы должны вашим друзьям ${value.toLocaleString('ru')} ${
+                        message: `Вы должны вашим друзьям ${formatNumber({
+                            integerSeparator: ' ',
+                            decimal: ',',
+                        })(value)} ${
                             currencies[currency]
                         }. Пожалуйста, выполните перевод и подтвердите это в приложении`,
                         access_token: this.configService.get('VK_TOKEN'),
