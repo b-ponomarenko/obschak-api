@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { VkService } from '../vk/vk.service';
 import { EventsService } from '../events/events.service';
 import getDebtList from '../utils/getDebtList';
@@ -18,7 +18,7 @@ export class TasksService {
         private configService: ConfigService,
     ) {}
 
-    @Cron('0 14-17 * * */2')
+    @Cron(CronExpression.EVERY_DAY_AT_2PM)
     async handleCron() {
         const now = new Date();
         const events = await this.eventsService
