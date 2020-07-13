@@ -21,4 +21,10 @@ export class CreateEvent {
 
     @ArrayUnique()
     users: string[];
+
+    @IsString({
+        message: 'You should pass accessToken'
+    })
+    @Length(1, undefined, { message: 'Invalid accessToken' })
+    accessToken: string;
 }

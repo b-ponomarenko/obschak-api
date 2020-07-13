@@ -1,14 +1,15 @@
-import { ForbiddenException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { Connection } from 'typeorm';
 import { Event } from '../entities/Event';
 import sortBy from '@tinkoff/utils/array/sortBy';
 import { Purchase } from '../entities/Purchase';
 import { Transfer } from '../entities/Transfer';
 import isEmpty from '@tinkoff/utils/is/empty';
+import { VkService } from '../vk/vk.service';
 
 @Injectable()
 export class EventsService {
-    constructor(private readonly connection: Connection) {}
+    constructor(private readonly connection: Connection, private readonly vkService: VkService) {}
 
     public async createEvent(userId: number, body) {
         const queryRunner = this.connection.createQueryRunner();
@@ -17,6 +18,10 @@ export class EventsService {
         await queryRunner.startTransaction();
 
         const { manager } = queryRunner;
+
+        const { accessToken, users } = body;
+
+        await this.checkIsFriends(users, accessToken);
 
         try {
             const event = await manager.save(Event, {
@@ -59,6 +64,12 @@ export class EventsService {
             throw new ForbiddenException(
                 `Только создатель события события может выполнить данный запрос`,
             );
+        }
+
+        if (!isEmpty(newUsers)) {
+            const { accessToken } = body;
+
+            await this.checkIsFriends(newUsers, accessToken);
         }
 
         try {
@@ -135,5 +146,23 @@ export class EventsService {
 
     public async getEventsDeep() {
         return this.connection.manager.find(Event, { relations: ['purchases', 'transfers'] });
+    }
+
+    private async checkIsFriends(users, accessToken) {
+        const response = await this.vkService.vk.api.friends.areFriends({
+            need_sign: false,
+            user_ids: users,
+            access_token: accessToken,
+        }).catch(({ code, ...rest }) => {
+            if (code === 4 || code === 5) {
+                throw new BadRequestException('Invalid accessToken');
+            }
+
+            throw new InternalServerErrorException({ code, ...rest });
+        })
+
+        if (!response.every(({ friend_status }) => friend_status === 3)) {
+            throw new BadRequestException('В событие можно добавлять только друзей')
+        }
     }
 }
