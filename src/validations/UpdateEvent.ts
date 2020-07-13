@@ -24,4 +24,9 @@ export class UpdateEvent {
 
     @ArrayUnique()
     users: string[];
+
+    @IsOptional()
+    @IsString()
+    @Length(1, undefined, { message: 'Invalid accessToken' })
+    accessToken: string;
 }
