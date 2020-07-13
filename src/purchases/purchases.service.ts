@@ -23,19 +23,19 @@ export class PurchasesService {
 
         const { manager } = queryRunner;
 
+        const { name, value, currency, creatorId, participants, receipts = [] } = body;
+        const event = await this.eventsService.getOneEvent(eventId);
+
+        if (
+            !participants.every((userId) => event.users.includes(userId)) ||
+            !event.users.includes(creatorId)
+        ) {
+            throw new BadRequestException(
+                'Вы не можете добавить в покупку пользователя, который не является участником события',
+            );
+        }
+
         try {
-            const { name, value, currency, creatorId, participants, receipts = [] } = body;
-            const event = await this.eventsService.getOneEvent(eventId);
-
-            if (
-                !participants.every((userId) => event.users.includes(userId)) ||
-                !event.users.includes(creatorId)
-            ) {
-                throw new BadRequestException(
-                    'Вы не можете добавить в покупку пользователя, который не является участником события',
-                );
-            }
-
             const purchase = await manager.save(Purchase, {
                 name,
                 value,
