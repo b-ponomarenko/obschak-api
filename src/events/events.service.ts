@@ -25,15 +25,6 @@ export class EventsService {
 
         const { manager } = queryRunner;
 
-        const { accessToken, users } = body;
-
-        try {
-            await this.checkIsFriends(users, accessToken);
-        } catch (e) {
-            await queryRunner.release();
-            throw new HttpException(e.message, e.status);
-        }
-
         try {
             const event = await manager.save(Event, {
                 ...body,
@@ -75,17 +66,6 @@ export class EventsService {
             throw new ForbiddenException(
                 `Только создатель события события может выполнить данный запрос`,
             );
-        }
-
-        if (!isEmpty(newUsers)) {
-            const { accessToken } = body;
-
-            try {
-                await this.checkIsFriends(users, accessToken);
-            } catch (e) {
-                await queryRunner.release();
-                throw new HttpException(e.message, e.status);
-            }
         }
 
         try {
@@ -162,25 +142,5 @@ export class EventsService {
 
     public async getEventsDeep() {
         return this.connection.manager.find(Event, { relations: ['purchases', 'transfers'] });
-    }
-
-    private async checkIsFriends(users, accessToken) {
-        const response = await this.vkService.vk.api.friends.areFriends({
-            need_sign: false,
-            user_ids: users,
-            access_token: accessToken,
-        }).catch(({ code, ...rest }) => {
-            console.log({ code, ...rest, accessToken });
-
-            if (code === 4 || code === 5) {
-                throw new BadRequestException('Invalid accessToken');
-            }
-
-            throw new InternalServerErrorException({ code, ...rest });
-        })
-
-        if (!response.every(({ friend_status }) => friend_status === 3)) {
-            throw new BadRequestException('В событие можно добавлять только друзей')
-        }
     }
 }
