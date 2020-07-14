@@ -1,4 +1,10 @@
-import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+    BadRequestException,
+    ForbiddenException,
+    HttpException,
+    Injectable,
+    InternalServerErrorException,
+} from '@nestjs/common';
 import { Connection } from 'typeorm';
 import { Event } from '../entities/Event';
 import sortBy from '@tinkoff/utils/array/sortBy';
@@ -21,7 +27,12 @@ export class EventsService {
 
         const { accessToken, users } = body;
 
-        await this.checkIsFriends(users, accessToken);
+        try {
+            await this.checkIsFriends(users, accessToken);
+        } catch (e) {
+            await queryRunner.release();
+            throw new HttpException(e.message, e.status);
+        }
 
         try {
             const event = await manager.save(Event, {
@@ -69,7 +80,12 @@ export class EventsService {
         if (!isEmpty(newUsers)) {
             const { accessToken } = body;
 
-            await this.checkIsFriends(newUsers, accessToken);
+            try {
+                await this.checkIsFriends(users, accessToken);
+            } catch (e) {
+                await queryRunner.release();
+                throw new HttpException(e.message, e.status);
+            }
         }
 
         try {
