@@ -170,7 +170,7 @@ export class EventsService {
             user_ids: users,
             access_token: accessToken,
         }).catch(({ code, ...rest }) => {
-            console.log({ code, ...rest });
+            console.log({ code, ...rest, accessToken });
 
             if (code === 4 || code === 5) {
                 throw new BadRequestException('Invalid accessToken');
