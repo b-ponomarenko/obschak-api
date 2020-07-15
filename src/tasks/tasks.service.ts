@@ -19,7 +19,7 @@ export class TasksService {
         private configService: ConfigService,
     ) {}
 
-    @Cron(CronExpression.EVERY_DAY_AT_2PM)
+    @Cron(CronExpression.EVERY_MINUTE)
     async handleCron() {
         const now = new Date();
         const events = await this.eventsService
@@ -41,6 +41,7 @@ export class TasksService {
             }, {}),
         );
 
+        console.log('debts', JSON.stringify(debts, null, 4));
         await Promise.all(
             debts.map(({ from, currency, value }) =>
                 this.vkService.vk.api.notifications
@@ -54,7 +55,7 @@ export class TasksService {
                         }. Пожалуйста, выполните перевод и подтвердите это в приложении`,
                         access_token: this.configService.get('VK_TOKEN'),
                     })
-                    .catch((e) => e),
+                    .catch((e) => console.log('error', JSON.stringify(e, null, 4))),
             ),
         );
     }
