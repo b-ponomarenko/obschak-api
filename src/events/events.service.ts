@@ -25,11 +25,13 @@ export class EventsService {
 
         const { manager } = queryRunner;
 
+        const users = await this.filterUsers(body.users);
+
         try {
             const event = await manager.save(Event, {
                 ...body,
                 creatorId: userId,
-                users: [userId, ...body.users],
+                users: [userId, ...users],
                 purchases: [],
             });
 
@@ -55,10 +57,12 @@ export class EventsService {
         const event = await manager.findOne(Event, eventId, {
             relations: ['purchases', 'transfers'],
         });
-        const { photo = null, users, title } = body;
+        const { photo = null, title } = body;
 
-        const newUsers = body.users.filter((id) => !event.users.includes(id));
-        const deletableUsers = event.users.filter((id) => !body.users.includes(id));
+        const users = await this.filterUsers(body.users);
+
+        const newUsers = users.filter((id) => !event.users.includes(id));
+        const deletableUsers = users.filter((id) => !users.includes(id));
         const leaveEvent = deletableUsers.length === 1 && deletableUsers[0] === userId;
 
         // TODO для кейса с выходом из события сделать отдельный метод
@@ -83,7 +87,7 @@ export class EventsService {
                     ],
                 }));
             event.transfers = event.transfers.filter(
-                ({ from, to }) => body.users.includes(from) && body.users.includes(to),
+                ({ from, to }) => users.includes(from) && users.includes(to),
             );
 
             await Promise.all(event.purchases.map((purchase) => manager.save(Purchase, purchase)));
@@ -142,5 +146,16 @@ export class EventsService {
 
     public async getEventsDeep() {
         return this.connection.manager.find(Event, { relations: ['purchases', 'transfers'] });
+    }
+
+    private async filterUsers(userIds: number[]) {
+        return (
+            this.vkService.vk.api.users
+                // @ts-ignore
+                .get({ user_ids: userIds, fields: ['deactivated'] })
+                .then((users) =>
+                    users.filter(({ deactivated }) => !deactivated).map(({ id }) => id),
+                )
+        );
     }
 }
