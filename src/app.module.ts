@@ -37,6 +37,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
         }),
         ConfigModule.forRoot({
             isGlobal: true,
+            envFilePath: process.env.NODE_ENV === 'production' ? '.env.production' : '.env',
         }),
         ScheduleModule.forRoot(),
         RateLimiterModule,
@@ -52,7 +53,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
         {
             provide: APP_INTERCEPTOR,
             useClass: RateLimiterInterceptor,
-        }
+        },
     ],
 })
 export class AppModule {}
