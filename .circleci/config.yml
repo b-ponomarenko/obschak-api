@@ -1,0 +1,35 @@
+version: 2.1
+orbs:
+    node: circleci/node@3.0.1
+jobs:
+    build:
+        executor:
+            name: node/default
+        steps:
+            - checkout
+            - node/install-packages
+            - run:
+                  command: npm run build
+                  name: Building Nest project
+            - store_artifacts:
+                  path: dist
+    deploy:
+        executor:
+            name: node/default
+        steps:
+            - run:
+                  shell: /bin/sh
+                  command: sudo apt update && sudo apt install git -y && git --version
+            - run: sudo apt update
+            - run: sudo apt-get install rsync
+            - add_ssh_keys
+            - run: ssh-keyscan -H 46.229.214.236 >> ~/.ssh/known_hosts
+            - run: rsync -avce ssh --delete ./dist/ root@157.231.110.01:~/www/obschak-test
+workflows:
+    build-and-deploy:
+        jobs:
+            - build
+            - deploy:
+                  type: approval
+                  requires:
+                      - build
