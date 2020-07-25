@@ -14,22 +14,17 @@ jobs:
             - store_artifacts:
                   path: dist
     deploy:
-        executor:
-            name: node/default
+        machine:
+            enabled: true
         steps:
             - run:
-                  shell: /bin/sh
-                  command: sudo apt update && sudo apt install git -y && git --version
-            - run: sudo apt update
-            - run: sudo apt-get install rsync
-            - add_ssh_keys
-            - run: ssh-keyscan -H 46.229.214.236 >> ~/.ssh/known_hosts
-            - run: rsync -avce ssh --delete ./dist/ root@157.231.110.01:~/www/obschak-test
+                  name: Deploy Over SSH
+                  command: |
+                      ssh $SSH_USER@$SSH_HOST "pm2 list"
 workflows:
     build-and-deploy:
         jobs:
             - build
             - deploy:
-                  type: approval
                   requires:
                       - build
