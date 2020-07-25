@@ -1,8 +1,9 @@
 version: 2.1
 orbs:
     node: circleci/node@3.0.1
+    rsync: germade/rsync@0.0.1
 jobs:
-    build:
+    deploy-test:
         executor:
             name: node/default
         steps:
@@ -11,20 +12,11 @@ jobs:
             - run:
                   command: npm run build
                   name: Building Nest project
-            - store_artifacts:
-                  path: dist
-    deploy:
-        machine:
-            enabled: true
-        steps:
             - run:
                   name: Deploy Over SSH
-                  command: |
-                      ssh $SSH_USER@$SSH_HOST "pm2 list"
+                  command: rsync --archive --verbose --progress . $SSH_USER@$SSH_HOST:~/www/obschak-api-test
 workflows:
-    build-and-deploy:
+    deploy:
         jobs:
-            - build
-            - deploy:
-                  requires:
-                      - build
+            - deploy-test:
+                  type: approval
